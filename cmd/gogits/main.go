@@ -295,7 +295,7 @@ func printDayCol(day int) {
 		out = " Fri "
 	}
 
-	fmt.Printf(out)
+	fmt.Printf("%s", out)
 }
 
 func printCell(val int, today bool) {
@@ -314,7 +314,7 @@ func printCell(val int, today bool) {
 	}
 
 	if val == 0 {
-		fmt.Printf(escape + "  - " + "\033[0m")
+		fmt.Printf("%s", escape+"  - "+"\033[0m")
 		return
 	}
 
@@ -338,10 +338,18 @@ func printCells(cols map[int]column) {
 			}
 			if col, ok := cols[i]; ok {
 				if i == 0 && j == calcOffset()-1 {
-					printCell(col[j], true)
+					if j < len(col) {
+						printCell(col[j], true)
+					} else {
+						printCell(0, true)
+					}
 					continue
 				} else {
-					printCell(col[j], false)
+					if j < len(col) {
+						printCell(col[j], false)
+					} else {
+						printCell(0, false)
+					}
 					continue
 
 				}
