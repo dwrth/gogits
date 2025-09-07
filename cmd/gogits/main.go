@@ -47,7 +47,13 @@ func addNewSliceElementsToFile(filePath string, newRepos []string) {
 }
 
 func parseFileLinesToSlice(filePath string) []string {
-	f := openFile(filePath)
+	f, err := os.Open(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}
+		}
+		panic(err)
+	}
 	defer f.Close()
 
 	var lines []string
@@ -64,22 +70,6 @@ func parseFileLinesToSlice(filePath string) []string {
 	return lines
 }
 
-func openFile(filePath string) *os.File {
-	f, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0755)
-	if err != nil {
-		if os.IsNotExist(err) {
-			_, err = os.Create(filePath)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			panic(err)
-		}
-	}
-
-	return f
-}
-
 func joinSlices(new []string, existing []string) []string {
 	for _, i := range new {
 		if !slices.Contains(existing, i) {
@@ -92,7 +82,10 @@ func joinSlices(new []string, existing []string) []string {
 
 func dumpStringsSliceToFile(repos []string, filePath string) {
 	content := strings.Join(repos, "\n")
-	os.WriteFile(filePath, []byte(content), 0755)
+	err := os.WriteFile(filePath, []byte(content), 0755)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func scan(folder string) {
