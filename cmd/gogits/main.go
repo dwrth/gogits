@@ -104,7 +104,7 @@ func scanDotGitFolders(folders []string, folder string) []string {
 		log.Fatal(err)
 	}
 
-	files, err := f.Readdir(-1)
+	files, err := f.ReadDir(-1)
 	f.Close()
 	if err != nil {
 		log.Fatal(err)
