@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"slices"
 	"sort"
 	"time"
 
@@ -62,7 +63,7 @@ func calcOffset() int {
 	return offset
 }
 
-func fillCommits(email string, path string, commits map[int]int) map[int]int {
+func fillCommits(path string, commits map[int]int) map[int]int {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		panic(err)
@@ -79,10 +80,11 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 	}
 
 	offset := calcOffset()
+	emails := getEmailsFromConfig()
 	err = iterator.ForEach(func(c *object.Commit) error {
 		daysAgo := countDaysSinceDate(c.Author.When) + offset
 
-		if c.Author.Email != email {
+		if !slices.Contains(emails, c.Author.Email) {
 			return nil
 		}
 
@@ -99,9 +101,8 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 	return commits
 }
 
-func processRepos(email string) map[int]int {
-	filePath := getDotFilePath()
-	repos := parseFileLinesToSlice(filePath)
+func processRepos() map[int]int {
+	repos := getReposFromConfig()
 	daysInMap := daysInLastSixMonths
 
 	commits := make(map[int]int, daysInMap)
@@ -110,7 +111,7 @@ func processRepos(email string) map[int]int {
 	}
 
 	for _, path := range repos {
-		commits = fillCommits(email, path, commits)
+		commits = fillCommits(path, commits)
 	}
 
 	return commits
@@ -250,8 +251,9 @@ func printCommitStats(commits map[int]int) {
 	printCells(cols)
 }
 
-func stats(email string) {
-	commits := processRepos(email)
+func stats() {
+	fmt.Println("getting stats...")
+	commits := processRepos()
 	printCommitStats(commits)
 }
 
@@ -260,13 +262,19 @@ func main() {
 	var email string
 
 	flag.StringVar(&folder, "add", "", "add a new folder to scan for git repos")
-	flag.StringVar(&email, "email", "your@email.com", "the email to scan")
+	flag.StringVar(&email, "email", "", "the email to scan")
 	flag.Parse()
 
 	if folder != "" {
+
 		scan(folder)
 		return
 	}
 
-	stats(email)
+	if email != "" {
+		addEmailToConfig(email)
+		return
+	}
+
+	stats()
 }
