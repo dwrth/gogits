@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 )
+
+var ignore = []string{"vendor", "node_modules"}
 
 func scanDotGitFolders(folders []string, folder string) []string {
 	folder = strings.TrimSuffix(folder, "/")
@@ -35,9 +38,10 @@ func scanDotGitFolders(folders []string, folder string) []string {
 				continue
 			}
 
-			if fileName == "vendor" || fileName == "node_modules" {
+			if slices.Contains(ignore, fileName) {
 				continue
 			}
+
 			folders = scanDotGitFolders(folders, path)
 		}
 	}
