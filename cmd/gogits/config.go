@@ -15,13 +15,18 @@ type GogitsConfig struct {
 	pathToEmails      string
 }
 
+const (
+	mode    = int(0755)
+	baseDir = "/.gogits"
+)
+
 func getBasePath() string {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return usr.HomeDir + "/.gogits"
+	return usr.HomeDir + baseDir
 }
 
 func getConfig() GogitsConfig {
@@ -78,8 +83,9 @@ func addNewSliceElementsToFile(filePath string, newRepos []string) {
 func dumpStringsSliceToFile(content []string, filePath string) {
 	lines := strings.Join(content, "\n")
 	basePath := getBasePath()
-	os.Mkdir(basePath, 0755)
-	err := os.WriteFile(filePath, []byte(lines), 0755)
+
+	os.Mkdir(basePath, os.FileMode(mode))
+	err := os.WriteFile(filePath, []byte(lines), os.FileMode(mode))
 	if err != nil {
 		panic(err)
 	}
